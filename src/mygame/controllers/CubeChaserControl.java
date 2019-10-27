@@ -15,48 +15,21 @@
  */
 package mygame.controllers;
 
-import com.jme3.collision.CollisionResults;
-import com.jme3.math.Ray;
-import com.jme3.renderer.Camera;
 import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.ViewPort;
-import com.jme3.scene.Geometry;
-import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.control.AbstractControl;
 import com.jme3.scene.control.Control;
-import mygame.models.AppContext;
 
 /**
  *
  * @author whiterabbit
  */
 public class CubeChaserControl extends AbstractControl {
-    private final Camera cam;
-    private final Node rootNode;
-    private final Ray ray = new Ray();
-    
-    
-    public CubeChaserControl(AppContext context) {
-        this.cam = context.getCamera();
-        this.rootNode = context.getRootNode();
-    }
     
     @Override
     protected void controlUpdate(float tpf) {
-        CollisionResults results = new CollisionResults();
-        ray.setOrigin(cam.getLocation());
-        ray.setDirection(cam.getDirection());
-        rootNode.collideWith(ray, results);
-        if (results.size() > 0) {
-            Geometry target = results.getClosestCollision().getGeometry();
-            if (target.equals(spatial)) {
-                if (cam.getLocation().distance(spatial.getLocalTranslation())
-                        < 10) {
-                    spatial.move(cam.getDirection());
-                }
-            }
-        }
+        spatial.rotate(tpf, tpf, tpf);
     }
 
     protected void controlRender(RenderManager rm, ViewPort vp) {
@@ -65,5 +38,9 @@ public class CubeChaserControl extends AbstractControl {
     public Control cloneForSpatial(Spatial spatial) {
         throw new UnsupportedOperationException(
                 "Not supported yet.");
+    }
+    
+    public String hello() {
+        return "Hello, my name is " + spatial.getName();
     }
 }
