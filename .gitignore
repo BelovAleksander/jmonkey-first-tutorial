@@ -1,0 +1,9 @@
+build/
+dist/
+nbproject/
+build.xml
+bulletjme.dll
+lwjgl64.dll
+MANIFEST.MF
+master-application.jnlp
+OpenAL64.dll
