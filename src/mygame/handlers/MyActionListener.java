@@ -18,20 +18,20 @@ package mygame.handlers;
 import com.jme3.input.controls.ActionListener;
 import com.jme3.math.ColorRGBA;
 import com.jme3.scene.Geometry;
-import java.util.HashMap;
 import java.util.Map;
+import mygame.models.AppContext;
 
 /**
  *
  * @author whiterabbit
  */
 public class MyActionListener implements ActionListener {
-    private String MAPPING_COLOR;
-    private Map<String, Geometry> geometryMap;
+    private final String MAPPING_COLOR;
+    private final Map<String, Geometry> geometryMap;
 
-    public MyActionListener(String mappingColor, Map<String, Geometry> geometryMap) {
+    public MyActionListener(String mappingColor, AppContext context) {
         this.MAPPING_COLOR = mappingColor; 
-        this.geometryMap = geometryMap;
+        this.geometryMap = context.getGeometryMap();
     }
     
     @Override

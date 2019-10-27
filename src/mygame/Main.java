@@ -1,6 +1,7 @@
 package mygame;
 
 import com.jme3.app.SimpleApplication;
+import com.jme3.collision.CollisionResults;
 import com.jme3.input.KeyInput;
 import com.jme3.input.MouseInput;
 import com.jme3.input.controls.ActionListener;
@@ -9,16 +10,21 @@ import com.jme3.input.controls.KeyTrigger;
 import com.jme3.input.controls.MouseButtonTrigger;
 import com.jme3.input.controls.Trigger;
 import com.jme3.math.ColorRGBA;
+import com.jme3.math.Ray;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.RenderManager;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.system.AppSettings;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import static mygame.config.AppConfig.initSettings;
 import mygame.handlers.MyActionListener;
 import mygame.handlers.MouseLookMoveListener;
+import mygame.handlers.MousePointerAnalogListener;
+import mygame.models.AppContext;
 import mygame.models.Size;
 import mygame.service.CreatorService;
 import static mygame.utils.Utils.*;
@@ -26,30 +32,34 @@ import static mygame.utils.Utils.*;
 /**
  * This is the Main Class of your Game. You should only do initialization here.
  * Move your Logic into AppStates or Controls
+ *
  * @author normenhansen
  */
 public class Main extends SimpleApplication {
+
     private CreatorService creatorService;
+    private AppContext appContext;
+    private Geometry scaredCube;
     private final static String DEF_NAME = "Common/MatDefs/Misc/Unshaded.j3md";
-    
+
     private final static Trigger TRIGGER_COLOR = new KeyTrigger(KeyInput.KEY_SPACE);
     private final static Trigger TRIGGER_ROTATE = new MouseButtonTrigger(MouseInput.BUTTON_LEFT);
     private final static Trigger TRIGGER_COLOR2 = new KeyTrigger(KeyInput.KEY_C);
-    
+
     private final static String MAPPING_COLOR = "mappingColor";
     private final static String MAPPING_ROTATE = "mappingRotate";
 
-    private Map<String, Geometry> geometryMap = new HashMap<>();
-    
+    private final Map<String, Geometry> geometryMap = new HashMap<>();
+
     private ActionListener actionListener;
     private AnalogListener analogListener;
-    
+
     public void init() {
         AppSettings appSettings = new AppSettings(true);
         initSettings(appSettings);
-      
+
     }
-    
+
     public static void main(String[] args) {
         Main app = new Main();
         app.init();
@@ -58,28 +68,33 @@ public class Main extends SimpleApplication {
 
     @Override
     public void simpleInitApp() {
+        appContext = new AppContext(inputManager, assetManager, rootNode, cam, geometryMap);
+        this.creatorService = new CreatorService(appContext, "Common/MatDefs/Misc/Unshaded.j3md");
         initListeners();
-        createObjects();
+        //createObjects();
         //attachCenterMark();
+        //createRandomStaticCubes(40);
+        createRandomScaredCubes(40);
         setCursorVisible();
+        flyCam.setMoveSpeed(100f);
     }
 
     @Override
     public void simpleUpdate(float tpf) {
-        //TODO: add update code
+
     }
 
     @Override
     public void simpleRender(RenderManager rm) {
         //TODO: add render code
     }
-    
+
     private void attachNodes(Node... nodes) {
         for (Node node : nodes) {
             super.rootNode.attachChild(node);
         }
     }
-    
+
     private void attachCenterMark() {
         Geometry c = creatorService.myBox("center mark",
                 Vector3f.ZERO, ColorRGBA.White);
@@ -88,14 +103,14 @@ public class Main extends SimpleApplication {
                 settings.getHeight() / 2, 0);
         guiNode.attachChild(c); // attach to 2D user interface
     }
-    
+
     private void setCursorVisible() {
         flyCam.setDragToRotate(true);
         inputManager.setCursorVisible(true);
     }
-    
+
     private void createObjects() {
-        this.creatorService = new CreatorService(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        this.creatorService = new CreatorService(appContext, "Common/MatDefs/Misc/Unshaded.j3md");
         Geometry floor = creatorService.createBox("floor", new Size(33, 33, -1), ColorRGBA.Orange);
         Geometry base = creatorService.createBox("Base", new Size(2, 1, 0.5f), ColorRGBA.Yellow);
         Geometry tower1 = creatorService.createBox("Tower1", new Size(0.3f, 0.3f, 0.3f), ColorRGBA.Green);
@@ -112,7 +127,7 @@ public class Main extends SimpleApplication {
         creep4.move(-1f, -3, 0);
         creep2.move(1f, -3.5f, 0);
         creep5.move(-1f, -3.5f, 0);
-        
+
         Node playerNode = new Node();
         Node towerNode = new Node();
         Node creepNode = new Node();
@@ -124,14 +139,39 @@ public class Main extends SimpleApplication {
         attachGeometries(rootNode, base, floor);
         putGeometriesIntoMap(geometryMap, creep1, creep2, creep3, creep4, creep5);
     }
-    
+
+    private void createRandomStaticCubes(int amount) {
+        List<Geometry> boxes = creatorService.makeCubes(amount);
+        attachGeometries(rootNode, boxes);
+        putGeometriesIntoMap(geometryMap, boxes);
+        scaredWhiteCube();
+    }
+
+    private void createRandomScaredCubes(int amount) {
+        List<Geometry> boxes = creatorService.makeScaredCubes(amount);
+        attachGeometries(rootNode, boxes);
+        putGeometriesIntoMap(geometryMap, boxes);
+    }
+
     private void initListeners() {
-        analogListener = new MouseLookMoveListener(super.rootNode, super.cam);
-        actionListener = new MyActionListener(MAPPING_COLOR, geometryMap);
+        //analogListener = new MouseLookMoveListener(context);
+        actionListener = new MyActionListener(MAPPING_COLOR, appContext);
+        //analogListener = new MousePointerAnalogListener(appContext, MAPPING_ROTATE);
 
         inputManager.addMapping(MAPPING_COLOR, TRIGGER_COLOR, TRIGGER_COLOR2);
         inputManager.addMapping(MAPPING_ROTATE, TRIGGER_ROTATE);
         inputManager.addListener(actionListener, new String[]{MAPPING_COLOR});
-        //inputManager.addListener(analogListener, new String[]{MAPPING_ROTATE});
+        inputManager.addListener(analogListener, new String[]{MAPPING_ROTATE});
+    }
+
+    private void scaredWhiteCube() {
+        System.out.println("Distance: "
+                + cam.getLocation().distance(scaredCube.getLocalTranslation()));
+        if (cam.getLocation().distance(scaredCube.getLocalTranslation()) < 10) {
+            scaredCube.move(cam.getDirection());
+        }
+        scaredCube = creatorService.myBox("Scared Cube", Vector3f.ZERO, ColorRGBA.White);
+        rootNode.attachChild(scaredCube);
+        putGeometriesIntoMap(geometryMap, scaredCube);
     }
 }

@@ -18,11 +18,13 @@ package mygame.utils;
 import com.jme3.asset.AssetManager;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
+import com.jme3.math.FastMath;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
-import mygame.service.CreatorService;
 
 /**
  *
@@ -44,6 +46,12 @@ public class Utils {
         }
     }
 
+    public static void attachGeometries(Node rootNode, List<Geometry> geometries) {
+        for (Geometry g : geometries) {
+            rootNode.attachChild(g);
+        }
+    }
+    
     public static void attachToNode(Node node, Geometry... geometries) {
         for (Geometry g : geometries) {
             node.attachChild(g);
@@ -51,6 +59,13 @@ public class Utils {
     }
 
     public static void putGeometriesIntoMap(Map<String, Geometry> geometryMap, Geometry... geometries) {
+        for (Geometry g : geometries) {
+            geometryMap.put(g.getName(), g);
+        }
+    }
+    
+    public static void putGeometriesIntoMap(Map<String, Geometry> geometryMap,
+            List<Geometry> geometries) {
         for (Geometry g : geometries) {
             geometryMap.put(g.getName(), g);
         }

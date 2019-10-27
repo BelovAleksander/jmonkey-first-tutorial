@@ -22,6 +22,7 @@ import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
+import mygame.models.AppContext;
 
 /**
  *
@@ -31,9 +32,9 @@ public class MouseLookMoveListener implements AnalogListener {
     private final Node rootNode;
     private final Camera cam;
     
-    public MouseLookMoveListener(Node rootNode, Camera cam) {
-        this.cam = cam;
-        this.rootNode = rootNode;
+    public MouseLookMoveListener(AppContext context) {
+        this.cam = context.getCamera();
+        this.rootNode = context.getRootNode();
     }
     
     @Override
@@ -66,5 +67,4 @@ public class MouseLookMoveListener implements AnalogListener {
             System.out.println("Selection: Nothing");
         }
     }
-    
 }
